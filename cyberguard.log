@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-10-02T10:55:12.123456",
+  "client_ip": "192.168.1.50",
+  "method": "POST",
+  "path": "/predict",
+  "payload": "SELECT * FROM users WHERE id = 1 OR 1=1",
+  "action": "BLOCK",
+  "confidence_score": 0.9842,
+  "execution_time_ms": 2.45
+}{"timestamp": "2026-10-02T08:05:48.529810", "client_ip": "127.0.0.1", "method": "POST", "path": "/api/v1/inspect", "payload": "SELECT * FROM users WHERE id = 1 OR 1=1", "is_malicious": true, "action": "BLOCK", "confidence": 0.5856, "execution_time_ms": 92.8}
+{"timestamp": "2026-10-02T08:08:52.737498", "client_ip": "testclient", "method": "POST", "path": "/api/v1/inspect", "payload": "' OR '1'='1' --", "is_malicious": true, "action": "BLOCK", "confidence": 0.719, "execution_time_ms": 22.8}
+{"timestamp": "2026-10-02T08:08:52.836548", "client_ip": "testclient", "method": "POST", "path": "/api/v1/inspect", "payload": "' OR '1'='1' --", "is_malicious": true, "action": "BLOCK", "confidence": 0.719, "execution_time_ms": 3.04}
+{"timestamp": "2026-10-02T08:08:52.875816", "client_ip": "testclient", "method": "POST", "path": "/api/v1/inspect", "payload": "username=john_doe&page=profile&lang=fr", "is_malicious": false, "action": "ALLOW", "confidence": 0.6289, "execution_time_ms": 2.94}
+{"timestamp": "2026-10-02T08:11:22.546115+00:00", "client_ip": "testclient", "method": "POST", "path": "/api/v1/inspect", "payload": "' OR '1'='1' --", "is_malicious": true, "action": "BLOCK", "confidence": 0.719, "execution_time_ms": 9.98}
+{"timestamp": "2026-10-02T08:11:22.582534+00:00", "client_ip": "testclient", "method": "POST", "path": "/api/v1/inspect", "payload": "' OR '1'='1' --", "is_malicious": true, "action": "BLOCK", "confidence": 0.719, "execution_time_ms": 1.57}
+{"timestamp": "2026-10-02T08:11:22.605638+00:00", "client_ip": "testclient", "method": "POST", "path": "/api/v1/inspect", "payload": "username=john_doe&page=profile&lang=fr", "is_malicious": false, "action": "ALLOW", "confidence": 0.6289, "execution_time_ms": 1.52}

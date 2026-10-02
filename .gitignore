@@ -17,3 +17,4 @@ data/raw/payloads.csv
 !data/raw/payloads.csv.dvc
 !.gitignore
 /models
+cyberguard.log 

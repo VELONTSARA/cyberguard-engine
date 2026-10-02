@@ -1,10 +1,14 @@
+import json
+import logging
+import time
 import urllib.parse
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 import joblib
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
 # Chemins vers les artefacts
@@ -12,6 +16,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MODELS_DIR = BASE_DIR / "models"
 VECTORIZER_PATH = MODELS_DIR / "vectorizer.pkl"
 MODEL_PATH = MODELS_DIR / "model.pkl"
+LOG_FILE_PATH = BASE_DIR / "cyberguard.log"
+
+# --- 1. CONFIGURATION DU LOGGING ---
+logger = logging.getLogger("cyberguard_security")
+logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    # Écriture dans le fichier cyberguard.log avec encodage UTF-8
+    file_handler = logging.FileHandler(LOG_FILE_PATH, mode="a", encoding="utf-8")
+    console_handler = logging.StreamHandler()
+
+    formatter = logging.Formatter('%(message)s')
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
 # Variables globales
 vectorizer = None
@@ -32,7 +53,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Optionnel: Nettoyage à la fermeture
     vectorizer = None
     model = None
 
@@ -72,21 +92,23 @@ def health_check() -> Dict[str, str]:
 
 
 @app.post("/api/v1/inspect", response_model=InspectionResponse)
-def inspect_payload(request: InspectionRequest) -> Dict[str, Any]:
+async def inspect_payload(request_data: InspectionRequest, req: Request) -> Dict[str, Any]:
     """
     Analyse un payload web et détermine s'il est malveillant ou légitime.
     """
+    start_time = time.time()
+
     if vectorizer is None or model is None:
         raise HTTPException(
             status_code=500,
             detail="Le modèle ML n'a pas été initialisé correctement."
         )
 
-    if not request.payload.strip():
+    if not request_data.payload.strip():
         raise HTTPException(status_code=400, detail="Le payload ne peut pas être vide.")
 
     # Nettoyage et vectorisation
-    cleaned = clean_payload(request.payload)
+    cleaned = clean_payload(request_data.payload)
     vec = vectorizer.transform([cleaned])
 
     # Prédiction et probabilités
@@ -96,9 +118,28 @@ def inspect_payload(request: InspectionRequest) -> Dict[str, Any]:
 
     is_malicious = (prediction == 1)
     action = "BLOCK" if is_malicious else "ALLOW"
+    execution_time_ms = round((time.time() - start_time) * 1000, 2)
+
+    # --- 2. LOGGING DANS CYBERGUARD.LOG ---
+    log_entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "client_ip": req.client.host if req.client else "unknown",
+        "method": req.method,
+        "path": req.url.path,
+        "payload": request_data.payload,
+        "is_malicious": is_malicious,
+        "action": action,
+        "confidence": round(confidence, 4),
+        "execution_time_ms": execution_time_ms
+    }
+
+    if is_malicious:
+        logger.warning(json.dumps(log_entry, ensure_ascii=False))
+    else:
+        logger.info(json.dumps(log_entry, ensure_ascii=False))
 
     return {
-        "payload": request.payload,
+        "payload": request_data.payload,
         "is_malicious": is_malicious,
         "action": action,
         "confidence": round(confidence, 4)
