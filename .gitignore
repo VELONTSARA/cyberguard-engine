@@ -1,20 +1,19 @@
 # Environnement virtuel Python
 venv/
+.venv/
 __pycache__/
 *.pyc
-
 
 # Artefacts de modèles & caches
 .pytest_cache/
 .mlflow/
 mlruns/
 
-# Données brutes et volumineuses (gérées par DVC)
+# Données brutes et volumineuses
 data/raw/*
 !data/raw/.gitkeep
-# Ignorer les données brutes lourdes
 data/raw/payloads.csv
 !data/raw/payloads.csv.dvc
-!.gitignore
-/models
-cyberguard.log 
+
+# Logs de l'application WAF
+cyberguard.log
