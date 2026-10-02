@@ -1,4 +1,4 @@
-name: CyberGuard Engine CI Pipeline
+name: CyberGuard Engine CI
 
 on:
   push:
@@ -11,32 +11,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupération du code sur le serveur GitHub
-      - name: Checkout Repository
+      - name: 1. Récupérer le code source
         uses: actions/checkout@v4
 
-      # 2. Configuration de Python 3.11
-      - name: Set up Python 3.11
+      - name: 2. Configurer Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.12"
+          cache: "pip"
 
-      # 3. Installation des dépendances
-      - name: Install Dependencies
+      - name: 3. Installer les dépendances
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest httpx
 
-      # 4. Exécution du pipeline MLOps (Entraînement & Évaluation)
-      - name: Train and Evaluate ML Model
+      # --- ÉTAPE DE SÉCURITÉ : Génération des artefacts si non présent dans Git ---
+      - name: 4. Entraîner le modèle (génération des .pkl)
         run: |
-          python -m src.download_data
-          python -m src.train
-          python -m src.evaluate
+          python train.py
 
-      # 5. Exécution des 6 tests d'intégration Pytest
-      - name: Run Pytest Suite
+      - name: 5. Exécuter les tests unitaires avec Pytest
         run: |
-          pytest -v
+          pytest --verbose
