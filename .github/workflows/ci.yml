@@ -25,20 +25,8 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: 4. Vérifier et exécuter l'entraînement si nécessaire
+      - name: 4. Exécuter les tests unitaires avec Pytest
         env:
           PYTHONPATH: .
         run: |
-            if [ -f src/train.py ]; then
-            python src/train.py
-            elif [ -f train.py ]; then
-            python train.py
-            else
-            echo "Aucun script train.py trouvé"
-            fi
-
-      - name: 5. Exécuter les tests unitaires avec Pytest
-        env:
-              PYTHONPATH: .
-        run: |
-              python -m pytest --verbose
+          python -m pytest --verbose
