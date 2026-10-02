@@ -26,17 +26,19 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: 4. Vérifier et exécuter l'entraînement si nécessaire
-        run: |
-          if [ -f train.py ]; then
-            python train.py
-          elif [ -f src/train.py ]; then
-            python src/train.py
-          else
-            echo "Aucun script train.py trouvé, vérification des artefacts..."
-          fi
-
-      - name: 5. Exécuter les tests unitaires avec Pytest
         env:
           PYTHONPATH: .
         run: |
-          python -m pytest --verbose
+            if [ -f src/train.py ]; then
+            python src/train.py
+            elif [ -f train.py ]; then
+            python train.py
+            else
+            echo "Aucun script train.py trouvé"
+            fi
+
+      - name: 5. Exécuter les tests unitaires avec Pytest
+        env:
+              PYTHONPATH: .
+        run: |
+              python -m pytest --verbose
