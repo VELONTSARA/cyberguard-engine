@@ -1,73 +1,87 @@
 from pathlib import Path
+import re
 import urllib.parse
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
-# Definition des chemins
-BASE_DIR = Path(__file__).resolve().parent.parent
-RAW_DATA_PATH = BASE_DIR / "data" / "raw" / "payloads.csv"
-PROCESSED_DIR = BASE_DIR / "data" / "processed"
+from src.config import PROCESSED_DIR, RAW_DATA_PATH
 
 
 def clean_payload(text: str) -> str:
     """
-    Normalise un payload brut (decodage URL, passage en minuscules et nettoyage).
+    Normalise un payload brut :
+    - Décodage URL
+    - Conversion en minuscules
+    - Tokenisation des adresses IP, UUIDs et nombres
     """
     if not isinstance(text, str):
         return ""
 
-    # Decodage URL simple (%20 -> espace, %27 -> ', etc.)
+    # 1. Décodage URL (%20 -> espace, %27 -> ', etc.)
     decoded = urllib.parse.unquote(text)
 
-    # Nettoyage des espaces multiples et passage en minuscules
-    cleaned = " ".join(decoded.split())
+    # 2. Passage en minuscules
+    cleaned = decoded.lower()
 
-    return cleaned.lower()
+    # 3. Remplacement des adresses IP par <IP>
+    cleaned = re.sub(
+        r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", "<IP>", cleaned
+    )
+
+    # 4. Remplacement des UUIDs par <UUID>
+    cleaned = re.sub(
+        r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b",
+        "<UUID>",
+        cleaned,
+    )
+
+    # 5. Remplacement des nombres isolés par <NUM>
+    cleaned = re.sub(r"\b\d+\b", "<NUM>", cleaned)
+
+    # 6. Normalisation des espaces multiples
+    cleaned = " ".join(cleaned.split())
+
+    return cleaned
 
 
 def process_and_split_data():
     """
-    Charge les donnees brutes, applique le nettoyage et decoupe en train/test.
+    Charge les données brutes, applique le nettoyage et découpe en train/test.
     """
     if not RAW_DATA_PATH.exists():
         raise FileNotFoundError(f"Fichier introuvable : {RAW_DATA_PATH}")
 
-    # Chargement du dataset brut
-    print("Chargement des donnees brutes...")
+    print("Chargement des données brutes...")
     df = pd.read_csv(RAW_DATA_PATH)
 
-    # Application de la normalisation
+    print("Application du nettoyage et de la tokenisation...")
     df["cleaned_payload"] = df["payload"].apply(clean_payload)
 
-    # Separation en jeu d'entrainement (80%) et de test (20%)
-    print("Separation Train/Test stratifiee...")
+    print("Séparation Train/Test stratifiée...")
     train_df, test_df = train_test_split(
         df,
         test_size=0.2,
         random_state=42,
-        stratify=df["category"]
+        stratify=df["category"],
     )
 
-    # Verification du dossier de sortie
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Sauvegarde des fichiers
     train_path = PROCESSED_DIR / "train.csv"
     test_path = PROCESSED_DIR / "test.csv"
 
     train_df.to_csv(train_path, index=False, encoding="utf-8")
     test_df.to_csv(test_path, index=False, encoding="utf-8")
 
-    print(f"Echantillons entrainement : {len(train_df)} -> {train_path}")
-    print(f"Echantillons test         : {len(test_df)} -> {test_path}")
+    print(f"Échantillons entraînement : {len(train_df)} -> {train_path}")
+    print(f"Échantillons test         : {len(test_df)} -> {test_path}")
 
 
 def main():
     try:
         process_and_split_data()
-        print("Pretraitement termine avec succes !")
+        print("Prétraitement terminé avec succès !")
     except Exception as e:
-        print(f"Erreur lors du pretraitement : {e}")
+        print(f"Erreur lors du prétraitement : {e}")
 
 
 if __name__ == "__main__":

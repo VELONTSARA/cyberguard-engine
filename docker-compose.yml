@@ -1,0 +1,7 @@
+services:
+  cyberguard-engine:
+    build: .
+    container_name: cyberguard-engine
+    ports:
+      - "8000:8000"
+    restart: always

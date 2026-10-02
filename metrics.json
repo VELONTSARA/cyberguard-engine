@@ -1,6 +1,12 @@
 {
-    "accuracy": 0.75,
+    "accuracy": 0.8182,
     "precision": 0.75,
     "recall": 1.0,
-    "f1_score": 0.8571
+    "f1_score": 0.8571,
+    "confusion_matrix": {
+        "true_negatives": 3,
+        "false_positives": 2,
+        "false_negatives": 0,
+        "true_positives": 6
+    }
 }
