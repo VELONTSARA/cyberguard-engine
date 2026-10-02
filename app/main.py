@@ -120,7 +120,7 @@ async def inspect_payload(request_data: InspectionRequest, req: Request) -> Dict
     action = "BLOCK" if is_malicious else "ALLOW"
     execution_time_ms = round((time.time() - start_time) * 1000, 2)
 
-    # --- LOGGING DANS CYBERGUARD.LOG ---
+    # --- LOGGING DANS CYBERGUARD.LOG h ---
     log_entry = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "client_ip": req.client.host if req.client else "unknown",
