@@ -25,11 +25,18 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # --- ÉTAPE DE SÉCURITÉ : Génération des artefacts si non présent dans Git ---
-      - name: 4. Entraîner le modèle (génération des .pkl)
+      - name: 4. Vérifier et exécuter l'entraînement si nécessaire
         run: |
-          python train.py
+          if [ -f train.py ]; then
+            python train.py
+          elif [ -f src/train.py ]; then
+            python src/train.py
+          else
+            echo "Aucun script train.py trouvé, vérification des artefacts..."
+          fi
 
       - name: 5. Exécuter les tests unitaires avec Pytest
+        env:
+          PYTHONPATH: .
         run: |
-          pytest --verbose
+          python -m pytest --verbose
